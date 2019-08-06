@@ -1,0 +1,43 @@
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+# -*- coding: utf-8 -*-
+import dataiku
+import pandas as pd, numpy as np
+from dataiku import pandasutils as pdu
+from datetime import datetime
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+# Read recipe inputs
+Per_Trail_Data_prepared_df = dataiku.Dataset("Per_Trail_Data_prepared").get_dataframe()
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+Per_Trail_Data_prepared_df.head(10)
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+#Creating Date Col
+uniqueTrails = len(Per_Trail_Data_prepared_df)
+allDays = pd.date_range('2019-01-01', periods=365, freq='D')
+allDays_df = pd.DataFrame(allDays, columns = ['Date'])
+allDays_df = pd.concat([allDays_df]*uniqueTrails, ignore_index=True) # Repeating rows of date as many times as there are trails
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+allDays_df.head(400)
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+#Repeating Trails 365 times
+Per_Trail_Data_prepared_df_2 = pd.concat([Per_Trail_Data_prepared_df]*365, ignore_index=True)
+Per_Trail_Data_prepared_df_2.sort_values(by=['Name'], inplace=True)
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+Per_Trail_Data_prepared_df_2.reset_index( drop = True, inplace= True)
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+#Adding Date Col to Trails
+Per_Trail_Data_prepared_df_2[['Date_parsed']] = allDays_df[['Date']]
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+Per_Trail_Data_prepared_df_2.head(100)
+
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+# Write recipe outputs
+dataiku.Dataset("Trails_with_Dates").write_with_schema(Per_Trail_Data_prepared_df_2)
